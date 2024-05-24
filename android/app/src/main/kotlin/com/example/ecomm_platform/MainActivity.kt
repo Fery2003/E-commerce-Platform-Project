@@ -1,0 +1,5 @@
+package com.example.ecomm_platform
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity()
