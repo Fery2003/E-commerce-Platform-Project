@@ -1,6 +1,7 @@
 // screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -135,14 +136,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Color(0xFF2F2222),
                                 ),
                                 SizedBox(
-                                  width: MediaQuery.of(context).size.width / 1.8,
+                                  width: MediaQuery.of(context).size.width / 2.1,
                                   child: const Text(
                                     'Login',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: Color(0xFF2F2222),
                                       fontSize: 55,
-                                      fontFamily: '',
+                                      fontFamily: 'Basic',
                                       fontWeight: FontWeight.w800,
                                     ),
                                   ),

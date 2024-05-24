@@ -29,7 +29,7 @@ class WelcomePage extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 64,
                       fontFamily: 'Risque',
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w900,
                       height: 0,
                     ),
                   ),
