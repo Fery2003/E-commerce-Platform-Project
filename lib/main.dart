@@ -1,16 +1,13 @@
+import 'package:ecomm_platform/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'screens/welcome_page.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
-import 'screens/product_screen.dart';
-import 'screens/vendor_management_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/cart_screen.dart';
+import 'screens/product_screen.dart';
+import 'package:ecomm_platform/screens/become_vendor_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+void main() {
   runApp(const MyApp());
 }
 
@@ -21,11 +18,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'E-Commerce Platform',
-      initialRoute: '/welcome',
+      theme: ThemeData(
+        primarySwatch: Colors.teal,
+      ),
+      initialRoute: '/',
       routes: {
-        '/welcome': (context) => const WelcomePage(),
+        '/': (context) => const WelcomePage(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
+        '/become_vendor': (context) => const BecomeVendorScreen(),
         '/products': (context) => const ProductScreen(),
         '/vendor_management': (context) => const VendorManagementScreen(),
         '/user_profile': (context) => const UserProfileScreen(),
