@@ -23,7 +23,7 @@ class WelcomePage extends StatelessWidget {
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height * 0.1,
                   child: const Text(
-                    'Sale Safari',
+                    'Smart Hub',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
