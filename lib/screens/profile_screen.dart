@@ -56,6 +56,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       setState(() {
         _profileImageUrl = imageUrl;
       });
+
     }
   }
 
@@ -69,6 +70,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         body: const Center(
           child: CircularProgressIndicator(),
         ),
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account upgraded to vendor')),
+      );
+    }
+  }
+
+  Future<void> _updateVendorProfile() async {
+    if (_currentUser != null && _vendorProfile != null) {
+      await _firestore.collection('vendors').doc(_currentUser!.uid).update({
+        'vendorName': _vendorNameController.text,
+        'description': _vendorDescriptionController.text,
+      });
+      setState(() {
+        _vendorProfile = VendorProfileModel(
+          id: _vendorProfile!.id,
+          userId: _vendorProfile!.userId,
+          vendorName: _vendorNameController.text,
+          description: _vendorDescriptionController.text,
+          productIds: _vendorProfile!.productIds,
+        );
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vendor profile updated')),
+
       );
     }
 
