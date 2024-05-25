@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/vendor_management': (context) => const VendorManagementScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/cart': (context) => const CartScreen(),
+        
       },
     );
   }

@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:path/path.dart' as path;
 
 class ImageUpload extends StatefulWidget {
   final Function(String) onUploadComplete;
 
-  const ImageUpload({required this.onUploadComplete, super.key});
+  const ImageUpload({super.key, required this.onUploadComplete});
 
   @override
   _ImageUploadState createState() => _ImageUploadState();
@@ -16,6 +15,7 @@ class ImageUpload extends StatefulWidget {
 
 class _ImageUploadState extends State<ImageUpload> {
   File? _image;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   bool _isUploading = false;
 
   Future<void> _pickImage() async {
@@ -32,20 +32,20 @@ class _ImageUploadState extends State<ImageUpload> {
     setState(() {
       _isUploading = true;
     });
-
     try {
-      String fileName = path.basename(_image!.path);
-      Reference storageReference = FirebaseStorage.instance.ref().child('product_images/$fileName');
-      UploadTask uploadTask = storageReference.putFile(_image!);
-
-      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
-      String downloadURL = await taskSnapshot.ref.getDownloadURL();
-      widget.onUploadComplete(downloadURL);
+      String filePath = 'product_images/${DateTime.now().millisecondsSinceEpoch}.png';
+      UploadTask uploadTask = _storage.ref().child(filePath).putFile(_image!);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      widget.onUploadComplete(downloadUrl);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Image upload failed: $e')),
+      );
     } finally {
       setState(() {
         _isUploading = false;
+        _image = null;
       });
     }
   }
@@ -53,29 +53,25 @@ class _ImageUploadState extends State<ImageUpload> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
+      children: [
         _image == null
             ? const Text('No image selected.')
-            : Container(
-                constraints: const BoxConstraints(
-                  maxWidth: 200,
-                  maxHeight: 200,
-                ),
-                child: Image.file(
-                  _image!,
-                  fit: BoxFit.cover,
-                ),
+            : Image.file(_image!, height: 200, width: 200, fit: BoxFit.cover),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: const Text('Pick Image'),
+            ),
+            if (_image != null && !_isUploading)
+              ElevatedButton(
+                onPressed: _uploadImage,
+                child: const Text('Upload Image'),
               ),
-        ElevatedButton(
-          onPressed: _pickImage,
-          child: const Text('Pick Image'),
+          ],
         ),
-        if (_image != null)
-          ElevatedButton(
-            onPressed: _isUploading ? null : _uploadImage,
-            child: _isUploading ? const CircularProgressIndicator() : const Text('Upload Image'),
-          ),
+        if (_isUploading) const CircularProgressIndicator(),
       ],
     );
   }
