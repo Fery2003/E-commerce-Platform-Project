@@ -34,7 +34,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     _currentUser = _auth.currentUser;
     if (_currentUser != null) {
       DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(_currentUser!.uid).get();
+      await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         _userModel = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
         _profileImageUrl = userDoc['profileImageUrl'];
@@ -250,7 +250,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
     _currentUser = _auth.currentUser;
     if (_currentUser != null) {
       DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(_currentUser!.uid).get();
+      await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         setState(() {
           _profileImageUrl = userDoc['profileImageUrl'];
@@ -279,7 +279,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
         var productData = productDoc.data() as Map<String, dynamic>;
         if (productData['ratings'] != null) {
           Map<String, dynamic> ratings =
-              Map<String, dynamic>.from(productData['ratings']);
+          Map<String, dynamic>.from(productData['ratings']);
           ratings.forEach((key, value) {
             totalRating += value;
             totalRatingsCount++;
@@ -346,11 +346,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
           } else if (index == 1) {
             Navigator.pushNamed(context, '/products');
           } else if (index == 2) {
-            if (Navigator.canPop(context)) {
-              Navigator.of(context).pop();
-            } else {
-              Navigator.pushNamed(context, '/products');
-            }
+            Navigator.pop(context);
           }
         },
       ),
@@ -384,20 +380,15 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(5, (index) {
-                          return Icon(
-                            index < _averageRating
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: Colors.orange,
-                            size: 24,
-                          );
-                        }),
-                      ),
-                      const SizedBox(height: 8),
                       ImageUpload(onUploadComplete: _updateProfileImage),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Average Product Rating: ${_averageRating.toStringAsFixed(1)}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -410,22 +401,30 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                 children: [
                   _buildProfileOption(
                     context: context,
-                    icon: Icons.store,
-                    label: 'My Products',
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/vendor_management'),
-                  ),
-                  _buildProfileOption(
-                    context: context,
-                    icon: Icons.show_chart,
-                    label: 'Sales',
-                    onTap: () => Navigator.pushNamed(context, '/sales'),
+                    icon: Icons.add_shopping_cart,
+                    label: 'Add Products',
+                    onTap: () => Navigator.pushNamed(context, '/vendor_management'),
                   ),
                   _buildProfileOption(
                     context: context,
                     icon: Icons.list,
-                    label: 'Orders',
-                    onTap: () => Navigator.pushNamed(context, '/orders'),
+                    label: 'Manage Products',
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/manage_products'),
+                  ),
+                  _buildProfileOption(
+                    context: context,
+                    icon: Icons.receipt,
+                    label: 'Manage Orders',
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/manage_orders'),
+                  ),
+                  _buildProfileOption(
+                    context: context,
+                    icon: Icons.discount,
+                    label: 'Manage Discounts',
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/manage_discounts'),
                   ),
                 ],
               ),

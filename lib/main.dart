@@ -1,3 +1,5 @@
+import 'package:ecomm_platform/screens/manage_discounts_screen.dart';
+import 'package:ecomm_platform/screens/manage_products_screen.dart';
 import 'package:ecomm_platform/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -37,6 +39,8 @@ class MyApp extends StatelessWidget {
         '/user_profile': (context) => const UserProfileScreen(),
         '/vendor_profile': (context) => const VendorProfileScreen(),
         '/cart': (context) => const CartScreen(),
+        '/manage_discounts': (context) => const ManageDiscountsScreen(),
+        '/manage_products': (context) => const ManageProductsScreen(),
       },
     );
   }
