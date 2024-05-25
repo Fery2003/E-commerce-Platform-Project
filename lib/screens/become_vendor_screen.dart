@@ -1,4 +1,3 @@
-// screens/become_vendor_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -72,6 +71,7 @@ class _BecomeVendorScreenState extends State<BecomeVendorScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 20),
               TextField(
                 controller: _vendorNameController,
                 decoration: const InputDecoration(
@@ -129,10 +129,14 @@ class _BecomeVendorScreenState extends State<BecomeVendorScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                ),
                 onPressed: _isLoading ? null : _upgradeToVendor,
                 child: _isLoading
                     ? const CircularProgressIndicator()
-                    : const Text('Submit'),
+                    : const Text('Submit', style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
             ],
           ),

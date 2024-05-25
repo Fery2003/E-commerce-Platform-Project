@@ -1,31 +1,34 @@
 class ProductModel {
   String id;
   String name;
+  double discount; // Add discount field
   double price;
   String imageUrl;
   String description;
   String vendorId;
-  Map<String, dynamic> ratings; // Added ratings field
+  Map<String, dynamic> ratings;
 
   ProductModel({
     required this.id,
     required this.name,
     required this.price,
+    required this.discount, // Add discount to constructor parameters
     required this.imageUrl,
     required this.description,
     required this.vendorId,
-    this.ratings = const {}, // Default to an empty map
+    this.ratings = const {},
   });
 
   factory ProductModel.fromMap(Map<String, dynamic> data, String documentId) {
     return ProductModel(
       id: documentId,
       name: data['name'] ?? '',
-      price: data['price'] ?? 0.0,
+      price: (data['price'] ?? 0.0).toDouble(), // Convert price to double
+      discount: (data['discount'] ?? 0.0).toDouble(), // Convert discount to double and add default value
       imageUrl: data['imageUrl'] ?? '',
       description: data['description'] ?? '',
       vendorId: data['vendorId'] ?? '',
-      ratings: data['ratings'] != null ? Map<String, dynamic>.from(data['ratings']) : {}, // Initialize ratings
+      ratings: data['ratings'] != null ? Map<String, dynamic>.from(data['ratings']) : {},
     );
   }
 
@@ -33,6 +36,7 @@ class ProductModel {
     return {
       'name': name,
       'price': price,
+      'discount': discount, // Include discount in the map
       'imageUrl': imageUrl,
       'description': description,
       'vendorId': vendorId,

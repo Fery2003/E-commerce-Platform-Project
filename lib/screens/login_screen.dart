@@ -118,6 +118,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           Positioned(
+                            left: 10,
+                            top: 30,
+                            child: IconButton(
+                              icon: Icon(Icons.arrow_back),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                          Positioned(
                             left: MediaQuery.of(context).size.width / 2 * 1.2,
                             top: MediaQuery.of(context).size.height / 4.2,
                             child: Row(
