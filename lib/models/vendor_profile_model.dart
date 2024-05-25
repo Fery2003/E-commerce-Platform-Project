@@ -4,7 +4,7 @@ class VendorProfileModel {
   String userId;
   String vendorName;
   String description;
-  List<String> productIds; // List of product IDs
+  List<String> productIds;
 
   VendorProfileModel({
     required this.id,

@@ -41,7 +41,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         if (_userModel!.isVendor) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => VendorProfileScreen(userModel: _userModel!)),
+            MaterialPageRoute(builder: (context) => const VendorProfileScreen()),
           );
         } else {
           setState(() {
@@ -394,7 +394,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                     context: context,
                     icon: Icons.store,
                     label: 'My Products',
-                    onTap: () => Navigator.pushNamed(context, '/my_products'),
+                    onTap: () => Navigator.pushNamed(context, '/vendor_management'),
                   ),
                   _buildProfileOption(
                     context: context,

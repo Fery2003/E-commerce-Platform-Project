@@ -50,7 +50,7 @@ class _BecomeVendorScreenState extends State<BecomeVendorScreen> {
         _isLoading = false;
       });
 
-      Navigator.pop(context); // Go back to the previous screen
+      Navigator.pushNamed(context, '/vendor_profile');
     }
   }
 
@@ -67,7 +67,7 @@ class _BecomeVendorScreenState extends State<BecomeVendorScreen> {
         title: const Text('Become a Vendor'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

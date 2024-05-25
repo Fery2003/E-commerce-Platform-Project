@@ -35,6 +35,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
     }
   }
 
+  void _navigateTo(String routeName) {
+    Navigator.pop(context); // Close the drawer
+    Navigator.pushReplacementNamed(context, routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isLoggedIn = _currentUser != null;
@@ -58,55 +63,47 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ListTile(
             leading: const Icon(Icons.shopping_cart),
             title: const Text('Products'),
-            onTap: () {
-              Navigator.pushNamed(context, '/products');
-            },
+            onTap: () => _navigateTo('/products'),
           ),
-          if (isLoggedIn)
+          if (isLoggedIn) ...[
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Profile'),
               onTap: () {
                 if (_isVendor) {
-                  Navigator.pushNamed(context, '/vendor_profile');
+                  _navigateTo('/vendor_profile');
                 } else {
-                  Navigator.pushNamed(context, '/user_profile');
+                  _navigateTo('/user_profile');
                 }
               },
             ),
-          if (!_isVendor)
-            ListTile(
-              leading: const Icon(Icons.shopping_cart),
-              title: const Text('My Cart'),
-              onTap: () {
-                Navigator.pushNamed(context, '/cart');
-              },
-            ),
-          if (_isVendor)
-            ListTile(
-              leading: const Icon(Icons.store),
-              title: const Text('Vendor Management'),
-              onTap: () {
-                Navigator.pushNamed(context, '/vendor_management');
-              },
-            ),
-          if (isLoggedIn)
+            if (!_isVendor)
+              ListTile(
+                leading: const Icon(Icons.shopping_cart),
+                title: const Text('My Cart'),
+                onTap: () => _navigateTo('/cart'),
+              ),
+            if (_isVendor)
+              ListTile(
+                leading: const Icon(Icons.store),
+                title: const Text('Vendor Management'),
+                onTap: () => _navigateTo('/vendor_management'),
+              ),
             ListTile(
               leading: const Icon(Icons.exit_to_app),
               title: const Text('Log Out'),
               onTap: () async {
                 await _auth.signOut();
-                Navigator.pushReplacementNamed(context, '/welcome');
+                _navigateTo('/');
               },
-            )
-          else
+            ),
+          ] else ...[
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Log In'),
-              onTap: () {
-                Navigator.pushNamed(context, '/login');
-              },
+              onTap: () => _navigateTo('/login'),
             ),
+          ],
         ],
       ),
     );
