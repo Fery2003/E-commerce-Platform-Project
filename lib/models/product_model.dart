@@ -1,8 +1,8 @@
 class ProductModel {
   String id;
   String name;
-  double price; // Change type to double
   double discount; // Add discount field
+  double price;
   String imageUrl;
   String description;
   String vendorId;

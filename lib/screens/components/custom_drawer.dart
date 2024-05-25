@@ -1,4 +1,3 @@
-// components/custom_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -25,19 +24,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   Future<void> _checkIfVendor() async {
     if (_currentUser != null) {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(_currentUser!.uid).get();
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         setState(() {
           _isVendor = userDoc['isVendor'] ?? false;
         });
       }
     }
-  }
-
-  void _navigateTo(String routeName) {
-    Navigator.pop(context); // Close the drawer
-    Navigator.pushReplacementNamed(context, routeName);
   }
 
   @override
@@ -63,7 +56,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ListTile(
             leading: const Icon(Icons.shopping_cart),
             title: const Text('Products'),
-            onTap: () => _navigateTo('/products'),
+            onTap: () => Navigator.pushNamed(context, '/products'),
           ),
           if (isLoggedIn) ...[
             ListTile(
@@ -71,9 +64,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
               title: const Text('Profile'),
               onTap: () {
                 if (_isVendor) {
-                  _navigateTo('/vendor_profile');
+                  Navigator.pushNamed(context, '/vendor_profile');
                 } else {
-                  _navigateTo('/user_profile');
+                  Navigator.pushNamed(context, '/user_profile');
                 }
               },
             ),
@@ -81,27 +74,27 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ListTile(
                 leading: const Icon(Icons.shopping_cart),
                 title: const Text('My Cart'),
-                onTap: () => _navigateTo('/cart'),
+                onTap: () => Navigator.pushNamed(context, '/cart'),
               ),
             if (_isVendor)
               ListTile(
                 leading: const Icon(Icons.store),
                 title: const Text('Vendor Management'),
-                onTap: () => _navigateTo('/vendor_management'),
+                onTap: () => Navigator.pushNamed(context, '/vendor_management'),
               ),
             ListTile(
               leading: const Icon(Icons.exit_to_app),
               title: const Text('Log Out'),
               onTap: () async {
                 await _auth.signOut();
-                _navigateTo('/');
+                Navigator.pushNamed(context, '/');
               },
             ),
           ] else ...[
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Log In'),
-              onTap: () => _navigateTo('/login'),
+              onTap: () => Navigator.pushNamed(context, '/login'),
             ),
           ],
         ],
