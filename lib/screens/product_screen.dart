@@ -161,7 +161,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                     direction: Axis.horizontal,
                                   ),
                                   Text(
-                                    '(${ratings.length} ratings)',
+                                    ratings.length > 1 ? '(${ratings.length} ratings)' : '(${ratings.length} rating)',
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ],

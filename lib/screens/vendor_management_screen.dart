@@ -1,7 +1,7 @@
-// screens/vendor_management_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import './components/image_upload.dart'; // Ensure the correct import path for ImageUpload
 
 class VendorManagementScreen extends StatefulWidget {
@@ -14,6 +14,7 @@ class VendorManagementScreen extends StatefulWidget {
 class _VendorManagementScreenState extends State<VendorManagementScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   final TextEditingController _productNameController = TextEditingController();
   final TextEditingController _productPriceController = TextEditingController();
   final TextEditingController _productDescriptionController = TextEditingController();
@@ -46,10 +47,28 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
     }
   }
 
-  void deleteProduct(String productId) async {
-    await _firestore.collection('products').doc(productId).delete();
+  Future<void> deleteProduct(String productId, String imageUrl) async {
+    DocumentReference productRef = _firestore.collection('products').doc(productId);
+    CollectionReference commentsRef = productRef.collection('comments');
+
+    // Get all documents in the comments sub-collection
+    QuerySnapshot commentsSnapshot = await commentsRef.get();
+
+    // Delete each document in the comments sub-collection
+    for (DocumentSnapshot doc in commentsSnapshot.docs) {
+      await doc.reference.delete();
+    }
+
+    // Delete the product document
+    await productRef.delete();
+
+    // Delete the image from Firebase Storage
+    if (imageUrl.isNotEmpty) {
+      await _storage.refFromURL(imageUrl).delete();
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Product deleted')),
+      const SnackBar(content: Text('Product and its comments deleted')),
     );
   }
 
@@ -115,7 +134,7 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
                         subtitle: Text('Price: \$${product['price']}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete),
-                          onPressed: () => deleteProduct(product.id),
+                          onPressed: () => deleteProduct(product.id, product['imageUrl']),
                         ),
                       );
                     },
