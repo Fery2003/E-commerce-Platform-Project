@@ -26,10 +26,12 @@ class MyApp extends StatelessWidget {
         '/': (context) => const WelcomePage(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
-        '/profile': (context) => const UserProfileScreen(),
         '/become_vendor': (context) => const BecomeVendorScreen(),
         '/products': (context) => const ProductScreen(),
-        // Add other routes here
+        '/vendor_management': (context) => const VendorManagementScreen(),
+        '/user_profile': (context) => const UserProfileScreen(),
+        '/vendor_profile': (context) => const VendorProfileScreen(),
+        '/cart': (context) => const CartScreen(),
       },
     );
   }

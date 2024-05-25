@@ -5,6 +5,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../models/product_model.dart'; // Ensure this import is correct
 import './components/custom_drawer.dart';
 import './product_detail_screen.dart';
+import './components/deals_carousel.dart'; // Import the DealsCarousel widget
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -42,7 +43,7 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Products'),
+        title: const Text('Products', style: TextStyle(fontFamily: 'Lato')),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60.0),
           child: Padding(
@@ -70,6 +71,8 @@ class _ProductScreenState extends State<ProductScreen> {
       drawer: CustomDrawer(),
       body: Column(
         children: [
+          // Add the DealsCarousel at the top
+          DealsCarousel(),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('products').snapshots(),
@@ -161,7 +164,9 @@ class _ProductScreenState extends State<ProductScreen> {
                                     direction: Axis.horizontal,
                                   ),
                                   Text(
-                                    ratings.length > 1 ? '(${ratings.length} ratings)' : '(${ratings.length} rating)',
+                                    ratings.length > 1
+                                        ? '(${ratings.length} ratings)'
+                                        : '(${ratings.length} rating)',
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ],
