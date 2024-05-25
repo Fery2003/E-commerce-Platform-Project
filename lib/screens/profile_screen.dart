@@ -1,9 +1,9 @@
+// screens/user_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecomm_platform/models/user_model.dart';
 import 'package:ecomm_platform/screens/components/image_upload.dart';
-//import 'package:ecomm-platform/screens/become_vendor_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -35,17 +35,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (_currentUser != null) {
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
-        setState(() {
-          _userModel = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
-          _profileImageUrl = userDoc['profileImageUrl'];
-          _loading = false;
-        });
+        _userModel = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
+        _profileImageUrl = userDoc['profileImageUrl'];
 
-        // Comment out this line to prevent navigation to VendorProfileScreen
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => VendorProfileScreen(userModel: _userModel!)),
-        // );
+        if (_userModel!.isVendor) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => VendorProfileScreen(userModel: _userModel!)),
+          );
+        } else {
+          setState(() {
+            _loading = false;
+          });
+        }
       }
     }
   }
@@ -171,6 +173,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     label: 'Orders',
                     onTap: () => Navigator.pushNamed(context, '/orders'),
                   ),
+                  _buildProfileOption(
+                    context: context,
+                    icon: Icons.store,
+                    label: 'Become a Vendor',
+                    onTap: () => Navigator.pushNamed(context, '/become_vendor'),
+                  ),
                 ],
               ),
             ],
@@ -295,7 +303,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.store),
-            label: 'Sale Safari',
+            label: 'Smart Hub',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.arrow_back),
