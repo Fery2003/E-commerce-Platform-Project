@@ -30,12 +30,16 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
   }
 
   Future<void> _fetchCategories() async {
-    QuerySnapshot categorySnapshot = await _firestore.collection('categories').get();
-    setState(() {
-      _categories = categorySnapshot.docs
-          .map((doc) => CategoryModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-          .toList();
-    });
+    try {
+      QuerySnapshot categorySnapshot = await _firestore.collection('categories').get();
+      setState(() {
+        _categories = categorySnapshot.docs
+            .map((doc) => CategoryModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+            .toList();
+      });
+    } catch (e) {
+      print("Error fetching categories: $e");
+    }
   }
 
   void addProduct(String imageUrl) async {
@@ -102,24 +106,44 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Products'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: 20),
             TextField(
               controller: _productNameController,
-              decoration: const InputDecoration(labelText: 'Product Name'),
+              decoration: const InputDecoration(
+                labelText: 'Product Name',
+                border: OutlineInputBorder(),
+              ),
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: _productPriceController,
-              decoration: const InputDecoration(labelText: 'Product Price'),
+              decoration: const InputDecoration(
+                labelText: 'Product Price',
+                border: OutlineInputBorder(),
+              ),
               keyboardType: TextInputType.number,
             ),
+            const SizedBox(height: 20),
             TextField(
               controller: _productDescriptionController,
-              decoration: const InputDecoration(labelText: 'Product Description'),
+              decoration: const InputDecoration(
+                labelText: 'Product Description',
+                border: OutlineInputBorder(),
+              ),
             ),
+            const SizedBox(height: 20),
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               hint: const Text('Select Category'),
@@ -136,8 +160,10 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
               },
               decoration: const InputDecoration(
                 labelText: 'Category',
+                border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 20),
             ImageUpload(
               onUploadComplete: (String imageUrl) {
                 setState(() {
@@ -145,7 +171,12 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
                 });
               },
             ),
+            const SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                padding: const EdgeInsets.symmetric(vertical: 15.0),
+              ),
               onPressed: () {
                 if (_productImageUrl != null) {
                   addProduct(_productImageUrl!);
@@ -155,8 +186,9 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
                   );
                 }
               },
-              child: const Text('Add Product'),
+              child: const Text('Add Product', style: TextStyle(fontSize: 18, color: Colors.white)),
             ),
+            const SizedBox(height: 20),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: _firestore

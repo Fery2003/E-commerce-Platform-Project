@@ -1,4 +1,3 @@
-// screens/signup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,13 +12,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _auth = FirebaseAuth.instance;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -70,8 +79,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width / 1.8,
+                                  width: MediaQuery.of(context).size.width / 1.8,
                                   child: const Text(
                                     'Sign Up',
                                     textAlign: TextAlign.center,
@@ -99,8 +107,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     top: MediaQuery.of(context).size.height / 2,
                     child: Container(
                       width: MediaQuery.of(context).size.width,
-                      padding: const EdgeInsets.all(
-                          20), // Add padding around the container
+                      padding: const EdgeInsets.all(20), // Add padding around the container
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           vertical: 20,
@@ -151,9 +158,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _obscureText
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
+                                    _obscureText ? Icons.visibility : Icons.visibility_off,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -178,9 +183,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _obscureText
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
+                                    _obscureText ? Icons.visibility : Icons.visibility_off,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -193,15 +196,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             const SizedBox(height: 20),
                             GestureDetector(
                               onTap: () async {
-                                if (_passwordController.text.trim() !=
-                                    _confirmPasswordController.text.trim()) {
+                                if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
                                   showDialog(
                                     context: context,
                                     builder: (context) {
                                       return AlertDialog(
                                         title: const Text('Error'),
-                                        content: const Text(
-                                            'Passwords do not match'),
+                                        content: const Text('Passwords do not match'),
                                         actions: <Widget>[
                                           TextButton(
                                             child: const Text('OK'),
@@ -217,14 +218,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 }
 
                                 try {
-                                  final newUser = await _auth
-                                      .createUserWithEmailAndPassword(
+                                  final newUser = await _auth.createUserWithEmailAndPassword(
                                     email: _emailController.text.trim(),
                                     password: _passwordController.text.trim(),
                                   );
                                   if (newUser != null) {
-                                    Navigator.pushReplacementNamed(
-                                        context, '/products');
+                                    Navigator.pushReplacementNamed(context, '/products');
                                   }
                                 } catch (e) {
                                   showDialog(
@@ -280,36 +279,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             const SizedBox(height: 20),
                             GestureDetector(
                               onTap: () {
-                                Navigator.pop(context);
+                                Navigator.pushNamed(context, '/become_vendor');
                               },
-                              child: Container(
-                                width: 247,
-                                height: 54,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF1EC0AC),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  shadows: const [
-                                    BoxShadow(
-                                      color: Color(0x3F000000),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Back to Login',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Color(0xFFE3E3E3),
-                                      fontSize: 30,
-                                      fontFamily: 'Basic',
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
+                              child: const Text(
+                                'Become a Vendor',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xB71EC0AC),
+                                  fontSize: 16,
+                                  fontFamily: 'Basic',
+                                  fontWeight: FontWeight.w400,
                                 ),
                               ),
                             ),
