@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class DealsCarousel extends StatefulWidget {
+  const DealsCarousel({super.key});
+
   @override
   _DealsCarouselState createState() => _DealsCarouselState();
 }
@@ -28,8 +31,16 @@ class _DealsCarouselState extends State<DealsCarousel> {
       _pageController.animateToPage(
         _currentPage,
         duration: const Duration(milliseconds: 300),
-        curve: Curves.easeIn,
+        curve: Curves.easeInOutCubic,
       );
+    });
+    _pageController.addListener(() {
+      int nextPage = _pageController.page!.round();
+      if (_currentPage != nextPage) {
+        setState(() {
+          _currentPage = nextPage;
+        });
+      }
     });
   }
 
@@ -63,22 +74,15 @@ class _DealsCarouselState extends State<DealsCarousel> {
             ),
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: _images.map((url) {
-            int index = _images.indexOf(url);
-            return Container(
-              width: 8.0,
-              height: 8.0,
-              margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentPage == index
-                    ? const Color.fromRGBO(0, 0, 0, 0.9)
-                    : const Color.fromRGBO(0, 0, 0, 0.4),
-              ),
-            );
-          }).toList(),
+        SmoothPageIndicator(
+          controller: _pageController,  // PageController
+          count: _images.length,
+          effect: const ExpandingDotsEffect(
+            activeDotColor: Colors.teal,
+            dotColor: Colors.grey,
+            dotHeight: 8.0,
+            dotWidth: 8.0,
+          ),
         ),
       ],
     );
