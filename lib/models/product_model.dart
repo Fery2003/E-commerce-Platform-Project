@@ -3,7 +3,7 @@ class ProductModel {
   String name;
   String price;
   String imageUrl;
-  String description; // New description field
+  String description;
   String vendorId;
 
   ProductModel({
@@ -21,7 +21,7 @@ class ProductModel {
       name: data['name'] ?? '',
       price: data['price'] ?? '',
       imageUrl: data['imageUrl'] ?? '',
-      description: data['description'] ?? '', // Fetch the description
+      description: data['description'] ?? '',
       vendorId: data['vendorId'] ?? '',
     );
   }

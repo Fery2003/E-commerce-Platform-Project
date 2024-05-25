@@ -1,8 +1,8 @@
-// screens/product_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import '../models/product_model.dart'; // Ensure this import is correct
 import './components/custom_drawer.dart';
 import './product_detail_screen.dart';
 
@@ -94,8 +94,12 @@ class _ProductScreenState extends State<ProductScreen> {
                   ),
                   itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
-                    var product = filteredProducts[index];
-                    var ratings = product['ratings'] ?? {};
+                    var productDoc = filteredProducts[index];
+                    var product = ProductModel.fromMap(
+                      productDoc.data() as Map<String, dynamic>,
+                      productDoc.id,
+                    );
+                    var ratings = productDoc['ratings'] ?? {};
                     var averageRating = _calculateAverageRating(ratings);
                     return Card(
                       elevation: 4.0,
@@ -118,9 +122,9 @@ class _ProductScreenState extends State<ProductScreen> {
                             ClipRRect(
                               borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(12.0)),
-                              child: product['imageUrl'] != null
+                              child: product.imageUrl.isNotEmpty
                                   ? Image.network(
-                                      product['imageUrl'],
+                                      product.imageUrl,
                                       height: 150,
                                       fit: BoxFit.cover,
                                     )
@@ -137,14 +141,14 @@ class _ProductScreenState extends State<ProductScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    product['name'],
+                                    product.name,
                                     style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('Price: \$${product['price']}'),
+                                  Text('Price: \$${product.price}'),
                                   const SizedBox(height: 4),
                                   RatingBarIndicator(
                                     rating: averageRating,
