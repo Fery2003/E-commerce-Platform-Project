@@ -84,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Account upgraded to vendor')),
+        const SnackBar(content: Text('Account upgraded to vendor')),
       );
     }
   }
@@ -105,7 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vendor profile updated')),
+        const SnackBar(content: Text('Vendor profile updated')),
       );
     }
   }
