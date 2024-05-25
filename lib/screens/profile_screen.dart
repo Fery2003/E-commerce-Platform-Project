@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecomm_platform/models/user_model.dart';
 import 'package:ecomm_platform/screens/components/image_upload.dart';
-//import 'package:ecomm-platform/screens/become_vendor_screen.dart';
+// import 'package:ecomm-platform/screens/become_vendor_screen.dart'; // Uncomment if needed
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -40,12 +40,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _profileImageUrl = userDoc['profileImageUrl'];
           _loading = false;
         });
-
-        // Comment out this line to prevent navigation to VendorProfileScreen
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => VendorProfileScreen(userModel: _userModel!)),
-        // );
       }
     }
   }
@@ -56,7 +50,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       setState(() {
         _profileImageUrl = imageUrl;
       });
-
     }
   }
 
@@ -70,47 +63,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         body: const Center(
           child: CircularProgressIndicator(),
         ),
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account upgraded to vendor')),
-      );
-    }
-  }
-
-  Future<void> _updateVendorProfile() async {
-    if (_currentUser != null && _vendorProfile != null) {
-      await _firestore.collection('vendors').doc(_currentUser!.uid).update({
-        'vendorName': _vendorNameController.text,
-        'description': _vendorDescriptionController.text,
-      });
-      setState(() {
-        _vendorProfile = VendorProfileModel(
-          id: _vendorProfile!.id,
-          userId: _vendorProfile!.userId,
-          vendorName: _vendorNameController.text,
-          description: _vendorDescriptionController.text,
-          productIds: _vendorProfile!.productIds,
-        );
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vendor profile updated')),
-
       );
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hello, Shopper'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {},
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {},
-          ),
-        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
@@ -236,11 +194,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 }
-
 class VendorProfileScreen extends StatefulWidget {
-  final UserModel userModel;
-
-  const VendorProfileScreen({super.key, required this.userModel});
+  const VendorProfileScreen({super.key});
 
   @override
   _VendorProfileScreenState createState() => _VendorProfileScreenState();
@@ -251,13 +206,13 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? _currentUser;
   String? _profileImageUrl;
+  String? _email;
   bool _loading = true;
-  double _rating = 4.0; // Example rating
+  double _averageRating = 0.0; // Average rating of the vendor's products
 
   @override
   void initState() {
     super.initState();
-    _currentUser = _auth.currentUser;
     _fetchVendorData();
   }
 
@@ -266,13 +221,48 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
       _loading = true;
     });
 
+    _currentUser = _auth.currentUser;
     if (_currentUser != null) {
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         setState(() {
           _profileImageUrl = userDoc['profileImageUrl'];
-          _loading = false;
+          _email = userDoc['email'];
         });
+        await _calculateAverageRating();
+      }
+    }
+
+    setState(() {
+      _loading = false;
+    });
+  }
+
+  Future<void> _calculateAverageRating() async {
+    if (_currentUser != null) {
+      QuerySnapshot productSnapshot = await _firestore
+          .collection('products')
+          .where('vendorId', isEqualTo: _currentUser!.uid)
+          .get();
+
+      double totalRating = 0.0;
+      int totalRatingsCount = 0;
+
+      for (var productDoc in productSnapshot.docs) {
+        var productData = productDoc.data() as Map<String, dynamic>;
+        if (productData['ratings'] != null) {
+          Map<String, dynamic> ratings = Map<String, dynamic>.from(productData['ratings']);
+          ratings.forEach((key, value) {
+            totalRating += value;
+            totalRatingsCount++;
+          });
+        }
+      }
+
+      if (totalRatingsCount > 0) {
+        _averageRating = totalRating / totalRatingsCount;
+      } else {
+        _averageRating = 0.0;
       }
     }
   }
@@ -302,16 +292,6 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hello, Vendor'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {},
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {},
-          ),
-        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
@@ -362,7 +342,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                         const Icon(Icons.account_circle, size: 80),
                       const SizedBox(height: 8),
                       Text(
-                        widget.userModel.email,
+                        _email ?? '',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -373,7 +353,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(5, (index) {
                           return Icon(
-                            index < _rating ? Icons.star : Icons.star_border,
+                            index < _averageRating ? Icons.star : Icons.star_border,
                             color: Colors.orange,
                             size: 24,
                           );

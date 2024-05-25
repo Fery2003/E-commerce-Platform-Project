@@ -62,13 +62,18 @@ class _CustomDrawerState extends State<CustomDrawer> {
               Navigator.pushNamed(context, '/products');
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Profile'),
-            onTap: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-          ),
+          if (isLoggedIn)
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profile'),
+              onTap: () {
+                if (_isVendor) {
+                  Navigator.pushNamed(context, '/vendor_profile');
+                } else {
+                  Navigator.pushNamed(context, '/user_profile');
+                }
+              },
+            ),
           if (!_isVendor)
             ListTile(
               leading: const Icon(Icons.shopping_cart),

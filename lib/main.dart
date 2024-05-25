@@ -28,9 +28,9 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => const SignUpScreen(),
         '/products': (context) => const ProductScreen(),
         '/vendor_management': (context) => const VendorManagementScreen(),
-        '/profile': (context) => const UserProfileScreen(),
+        '/user_profile': (context) => const UserProfileScreen(),
+        '/vendor_profile': (context) => const VendorProfileScreen(),
         '/cart': (context) => const CartScreen(),
-        
       },
     );
   }
