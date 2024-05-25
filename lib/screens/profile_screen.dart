@@ -33,7 +33,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     _currentUser = _auth.currentUser;
     if (_currentUser != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         _userModel = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
         _profileImageUrl = userDoc['profileImageUrl'];
@@ -41,7 +42,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         if (_userModel!.isVendor) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const VendorProfileScreen()),
+            MaterialPageRoute(
+                builder: (context) => const VendorProfileScreen()),
           );
         } else {
           setState(() {
@@ -49,7 +51,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           });
         }
         setState(() {
-          _userModel = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
+          _userModel =
+              UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
           _profileImageUrl = userDoc['profileImageUrl'];
           _loading = false;
         });
@@ -59,7 +62,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _updateProfileImage(String imageUrl) async {
     if (_currentUser != null) {
-      await _firestore.collection('users').doc(_currentUser!.uid).update({'profileImageUrl': imageUrl});
+      await _firestore
+          .collection('users')
+          .doc(_currentUser!.uid)
+          .update({'profileImageUrl': imageUrl});
       setState(() {
         _profileImageUrl = imageUrl;
       });
@@ -213,6 +219,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 }
+
 class VendorProfileScreen extends StatefulWidget {
   const VendorProfileScreen({super.key});
 
@@ -242,7 +249,8 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
 
     _currentUser = _auth.currentUser;
     if (_currentUser != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         setState(() {
           _profileImageUrl = userDoc['profileImageUrl'];
@@ -270,7 +278,8 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
       for (var productDoc in productSnapshot.docs) {
         var productData = productDoc.data() as Map<String, dynamic>;
         if (productData['ratings'] != null) {
-          Map<String, dynamic> ratings = Map<String, dynamic>.from(productData['ratings']);
+          Map<String, dynamic> ratings =
+              Map<String, dynamic>.from(productData['ratings']);
           ratings.forEach((key, value) {
             totalRating += value;
             totalRatingsCount++;
@@ -288,7 +297,10 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
 
   Future<void> _updateProfileImage(String imageUrl) async {
     if (_currentUser != null) {
-      await _firestore.collection('users').doc(_currentUser!.uid).update({'profileImageUrl': imageUrl});
+      await _firestore
+          .collection('users')
+          .doc(_currentUser!.uid)
+          .update({'profileImageUrl': imageUrl});
       setState(() {
         _profileImageUrl = imageUrl;
       });
@@ -334,7 +346,11 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
           } else if (index == 1) {
             Navigator.pushNamed(context, '/products');
           } else if (index == 2) {
-            Navigator.pop(context);
+            if (Navigator.canPop(context)) {
+              Navigator.of(context).pop();
+            } else {
+              Navigator.pushNamed(context, '/products');
+            }
           }
         },
       ),
@@ -372,7 +388,9 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(5, (index) {
                           return Icon(
-                            index < _averageRating ? Icons.star : Icons.star_border,
+                            index < _averageRating
+                                ? Icons.star
+                                : Icons.star_border,
                             color: Colors.orange,
                             size: 24,
                           );
@@ -394,7 +412,8 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                     context: context,
                     icon: Icons.store,
                     label: 'My Products',
-                    onTap: () => Navigator.pushNamed(context, '/vendor_management'),
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/vendor_management'),
                   ),
                   _buildProfileOption(
                     context: context,

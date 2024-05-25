@@ -125,10 +125,10 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
         ),
       ),
-      drawer: CustomDrawer(),
+      drawer: const CustomDrawer(),
       body: Column(
         children: [
-          DealsCarousel(),
+          const DealsCarousel(),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
