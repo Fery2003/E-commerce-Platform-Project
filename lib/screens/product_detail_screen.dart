@@ -38,12 +38,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     });
   }
 
-  double _calculateAverageRating(Map<String, dynamic> ratings) {
-    if (ratings.isEmpty) return 0.0;
-    double sum = ratings.values.fold(0, (a, b) => a + b);
-    return sum / ratings.length;
-  }
-
   Future<void> _addComment(String productId, String comment, User user) async {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
     DocumentReference productRef = _firestore.collection('products').doc(productId);
@@ -60,10 +54,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
-    var ratings = widget.product.toMap()['ratings'] != null
-        ? Map<String, dynamic>.from((widget.product.toMap()['ratings'] as Map).map((key, value) => MapEntry(key.toString(), value)))
-        : {};
-    var averageRating = _calculateAverageRating(Map<String, dynamic>.from(widget.product.toMap()['ratings'] ?? {}));
+    var averageRating = widget.product.averageRating;
 
     return Scaffold(
       appBar: AppBar(
@@ -109,15 +100,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              RatingBarIndicator(
-                rating: averageRating,
-                itemBuilder: (context, index) => const Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                ),
-                itemCount: 5,
-                itemSize: 30.0,
-                direction: Axis.horizontal,
+              Row(
+                children: [
+                  RatingBarIndicator(
+                    rating: averageRating,
+                    itemBuilder: (context, index) => const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                    ),
+                    itemCount: 5,
+                    itemSize: 30.0,
+                    direction: Axis.horizontal,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    averageRating.toStringAsFixed(1), // Display average rating with one decimal place
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               if (user != null) ...[
@@ -127,7 +127,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
                 const SizedBox(height: 8),
                 RatingBar.builder(
-                  initialRating: ratings[user.uid]?.toDouble() ?? 0,
+                  initialRating: widget.product.ratings[user.uid]?.toDouble() ?? 0,
                   minRating: 1,
                   direction: Axis.horizontal,
                   allowHalfRating: true,
@@ -163,6 +163,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     }
                   },
                   child: const Text('Submit'),
+                ),
+              ] else ...[
+                const Text(
+                  'You need to be logged in to rate or comment on this product.',
+                  style: TextStyle(fontSize: 16, color: Colors.red),
                 ),
               ],
               const SizedBox(height: 16),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import '../models/category_model.dart'; // Ensure the correct import path for CategoryModel
 import './components/image_upload.dart'; // Ensure the correct import path for ImageUpload
 
 class VendorManagementScreen extends StatefulWidget {
@@ -19,6 +20,23 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
   final TextEditingController _productPriceController = TextEditingController();
   final TextEditingController _productDescriptionController = TextEditingController();
   String? _productImageUrl;
+  String? _selectedCategory;
+  List<CategoryModel> _categories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    QuerySnapshot categorySnapshot = await _firestore.collection('categories').get();
+    setState(() {
+      _categories = categorySnapshot.docs
+          .map((doc) => CategoryModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    });
+  }
 
   void addProduct(String imageUrl) async {
     String productName = _productNameController.text.trim();
@@ -26,13 +44,19 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
     String productDescription = _productDescriptionController.text.trim();
     User? user = _auth.currentUser;
 
-    if (productName.isNotEmpty && productPrice.isNotEmpty && productDescription.isNotEmpty && imageUrl.isNotEmpty && user != null) {
+    if (productName.isNotEmpty &&
+        productPrice.isNotEmpty &&
+        productDescription.isNotEmpty &&
+        imageUrl.isNotEmpty &&
+        _selectedCategory != null &&
+        user != null) {
       await _firestore.collection('products').add({
         'name': productName,
         'price': productPrice,
         'description': productDescription,
         'imageUrl': imageUrl,
         'vendorId': user.uid,
+        'categoryId': _selectedCategory,
         'ratings': {},
       });
       _productNameController.clear();
@@ -40,6 +64,7 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
       _productDescriptionController.clear();
       setState(() {
         _productImageUrl = null;
+        _selectedCategory = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Product added')),
@@ -92,8 +117,26 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
               keyboardType: TextInputType.number,
             ),
             TextField(
-              controller: _productDescriptionController, // New TextField for description
+              controller: _productDescriptionController,
               decoration: const InputDecoration(labelText: 'Product Description'),
+            ),
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              hint: const Text('Select Category'),
+              items: _categories.map((CategoryModel category) {
+                return DropdownMenuItem<String>(
+                  value: category.id,
+                  child: Text(category.name),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedCategory = newValue;
+                });
+              },
+              decoration: const InputDecoration(
+                labelText: 'Category',
+              ),
             ),
             ImageUpload(
               onUploadComplete: (String imageUrl) {
