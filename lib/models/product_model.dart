@@ -1,7 +1,7 @@
 class ProductModel {
   String id;
   String name;
-  String price;
+  double price;
   String imageUrl;
   String description;
   String vendorId;
@@ -21,7 +21,7 @@ class ProductModel {
     return ProductModel(
       id: documentId,
       name: data['name'] ?? '',
-      price: data['price'] ?? '',
+      price: data['price'] ?? 0.0,
       imageUrl: data['imageUrl'] ?? '',
       description: data['description'] ?? '',
       vendorId: data['vendorId'] ?? '',

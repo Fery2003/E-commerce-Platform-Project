@@ -1,4 +1,3 @@
-// screens/user_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,35 +26,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _fetchUserData() async {
-    setState(() {
-      _loading = true;
-    });
-
     _currentUser = _auth.currentUser;
     if (_currentUser != null) {
       DocumentSnapshot userDoc =
           await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
-        _userModel = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
-        _profileImageUrl = userDoc['profileImageUrl'];
-
-        if (_userModel!.isVendor) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const VendorProfileScreen()),
-          );
-        } else {
-          setState(() {
-            _loading = false;
-          });
-        }
         setState(() {
-          _userModel =
-              UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
+          _userModel = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
           _profileImageUrl = userDoc['profileImageUrl'];
           _loading = false;
         });
+
+        // Redirect based on user type
+        if (_userModel!.isVendor) {
+          Navigator.pushReplacementNamed(context, '/vendor_profile');
+        }
       }
     }
   }
@@ -105,7 +90,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ],
         onTap: (index) {
-          // Handle navigation based on the index
           if (index == 0) {
             Navigator.pushNamed(context, '/home');
           } else if (index == 1) {
@@ -220,6 +204,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
+
 class VendorProfileScreen extends StatefulWidget {
   const VendorProfileScreen({super.key});
 
@@ -249,8 +234,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
 
     _currentUser = _auth.currentUser;
     if (_currentUser != null) {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(_currentUser!.uid).get();
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         setState(() {
           _profileImageUrl = userDoc['profileImageUrl'];
@@ -288,9 +272,13 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
       }
 
       if (totalRatingsCount > 0) {
-        _averageRating = totalRating / totalRatingsCount;
+        setState(() {
+          _averageRating = totalRating / totalRatingsCount;
+        });
       } else {
-        _averageRating = 0.0;
+        setState(() {
+          _averageRating = 0.0;
+        });
       }
     }
   }
@@ -340,7 +328,6 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
           ),
         ],
         onTap: (index) {
-          // Handle navigation based on the index
           if (index == 0) {
             Navigator.pushNamed(context, '/home');
           } else if (index == 1) {

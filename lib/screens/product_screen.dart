@@ -9,9 +9,7 @@ import './product_detail_screen.dart';
 import './components/deals_carousel.dart';
 
 class ProductScreen extends StatefulWidget {
-  final String? categoryId;
-
-  const ProductScreen({super.key, this.categoryId});
+  const ProductScreen({super.key});
 
   @override
   _ProductScreenState createState() => _ProductScreenState();
@@ -65,17 +63,15 @@ class _ProductScreenState extends State<ProductScreen> {
     });
   }
 
-  void _updateCategory(String? categoryId) {
+  void _toggleCategory(String? categoryId) {
     setState(() {
-      _selectedCategory = categoryId;
+      if (_selectedCategory == categoryId) {
+        _selectedCategory = null;
+      } else {
+        _selectedCategory = categoryId;
+      }
       _fetchProducts();
     });
-  }
-
-  double _calculateAverageRating(Map<String, dynamic> ratings) {
-    if (ratings.isEmpty) return 0.0;
-    double sum = ratings.values.fold(0, (a, b) => a + b);
-    return sum / ratings.length;
   }
 
   @override
@@ -87,40 +83,22 @@ class _ProductScreenState extends State<ProductScreen> {
           preferredSize: const Size.fromHeight(60.0),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 40.0,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30.0),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(
-                        hintText: 'Search Products',
-                        prefixIcon: Icon(Icons.search),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                      ),
-                      onChanged: _updateSearchQuery,
-                    ),
-                  ),
+            child: Container(
+              height: 40.0,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Search Products',
+                  prefixIcon: Icon(Icons.search),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10.0),
                 ),
-                const SizedBox(width: 8.0),
-                DropdownButton<String>(
-                  value: _selectedCategory,
-                  hint: const Text("Category"),
-                  onChanged: _updateCategory,
-                  items: _categories.map((category) {
-                    return DropdownMenuItem<String>(
-                      value: category.id,
-                      child: Text(category.name),
-                    );
-                  }).toList(),
-                ),
-              ],
+                onChanged: _updateSearchQuery,
+              ),
             ),
           ),
         ),
@@ -129,6 +107,53 @@ class _ProductScreenState extends State<ProductScreen> {
       body: Column(
         children: [
           const DealsCarousel(),
+          const SizedBox(height: 8.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: GridView.builder(
+              shrinkWrap: true,
+              itemCount: _categories.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                mainAxisSpacing: 8.0,
+                crossAxisSpacing: 8.0,
+              ),
+              itemBuilder: (context, index) {
+                var category = _categories[index];
+                bool isSelected = _selectedCategory == category.id;
+                return InkWell(
+                  onTap: () {
+                    _toggleCategory(category.id);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.0),
+                      color: isSelected ? Colors.teal : Colors.grey[200],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundImage: NetworkImage(category.imageUrl),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          category.name,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isSelected ? Colors.white : Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 18.0),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -163,8 +188,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         productDoc.data() as Map<String, dynamic>,
                         productDoc.id,
                       );
-                      var ratings = productDoc['ratings'] ?? {};
-                      var averageRating = _calculateAverageRating(ratings);
+                      var averageRating = product.averageRating;
                       return Card(
                         elevation: 4.0,
                         shape: RoundedRectangleBorder(
@@ -225,9 +249,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                       direction: Axis.horizontal,
                                     ),
                                     Text(
-                                      ratings.length > 1
-                                          ? '(${ratings.length} ratings)'
-                                          : '(${ratings.length} rating)',
+                                      '${averageRating.toStringAsFixed(1)} (${product.ratings.length} rating${product.ratings.length == 1 ? '' : 's'})',
                                       style: const TextStyle(fontSize: 12),
                                     ),
                                   ],
