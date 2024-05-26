@@ -24,13 +24,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   Future<void> _checkIfVendor() async {
     if (_currentUser != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
+      DocumentSnapshot userDoc =
+      await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         setState(() {
           _isVendor = userDoc['isVendor'] ?? false;
         });
       }
     }
+  }
+
+  void _navigateTo(String routeName) {
+    Navigator.pop(context); // Close the drawer
+    Navigator.pushReplacementNamed(context, routeName);
   }
 
   @override
@@ -43,7 +49,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         children: <Widget>[
           const DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Colors.teal, // Teal green color for the header
             ),
             child: Text(
               'Menu',
