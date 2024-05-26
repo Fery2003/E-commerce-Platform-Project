@@ -51,6 +51,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     });
   }
 
+  Future<void> _addToCart(String productId, User user) async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    DocumentReference cartRef = _firestore.collection('carts').doc(user.uid);
+    CollectionReference cartItemsRef = cartRef.collection('items');
+
+    // Check if the product is already in the cart
+    QuerySnapshot existingCartItems = await cartItemsRef
+        .where('productId', isEqualTo: productId)
+        .get();
+
+    if (existingCartItems.docs.isEmpty) {
+      // If the product is not in the cart, add it
+      await cartItemsRef.add({
+        'productId': productId,
+        'quantity': 1,
+        'addedAt': FieldValue.serverTimestamp(),
+      });
+    } else {
+      // If the product is already in the cart, increase the quantity
+      DocumentReference existingCartItemRef = existingCartItems.docs.first.reference;
+      await existingCartItemRef.update({
+        'quantity': FieldValue.increment(1),
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
@@ -68,16 +94,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             children: [
               widget.product.imageUrl.isNotEmpty
                   ? Image.network(
-                      widget.product.imageUrl,
-                      fit: BoxFit.cover,
-                      height: 250,
-                      width: double.infinity,
-                    )
+                widget.product.imageUrl,
+                fit: BoxFit.cover,
+                height: 250,
+                width: double.infinity,
+              )
                   : const Icon(Icons.image, size: 250),
               const SizedBox(height: 16),
-              Text(
-                widget.product.name,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.product.name,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  if (user != null)
+                    IconButton(
+                      icon: const Icon(Icons.shopping_cart),
+                      color: Colors.teal,
+                      onPressed: () {
+                        _addToCart(widget.product.id, user);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${widget.product.name} added to cart')),
+                        );
+                      },
+                    ),
+                ],
               ),
               const SizedBox(height: 8),
               Text(
@@ -166,7 +209,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ] else ...[
                 const Text(
-                  'You need to be logged in to rate or comment on this product.',
+                  'You need to be logged in to rate, comment, or add this product to your cart.',
                   style: TextStyle(fontSize: 16, color: Colors.red),
                 ),
               ],

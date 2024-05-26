@@ -24,13 +24,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   Future<void> _checkIfVendor() async {
     if (_currentUser != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
+      DocumentSnapshot userDoc =
+      await _firestore.collection('users').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         setState(() {
           _isVendor = userDoc['isVendor'] ?? false;
         });
       }
     }
+  }
+
+  void _navigateTo(String routeName) {
+    Navigator.pop(context); // Close the drawer
+    Navigator.pushReplacementNamed(context, routeName);
   }
 
   @override
@@ -43,7 +49,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         children: <Widget>[
           const DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Colors.teal, // Teal green color for the header
             ),
             child: Text(
               'Menu',
@@ -54,47 +60,47 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.shopping_cart),
+            leading: const Icon(Icons.shopping_cart, color: Colors.teal),
             title: const Text('Products'),
-            onTap: () => Navigator.pushNamed(context, '/products'),
+            onTap: () => _navigateTo('/products'),
           ),
           if (isLoggedIn) ...[
             ListTile(
-              leading: const Icon(Icons.person),
+              leading: const Icon(Icons.person, color: Colors.teal),
               title: const Text('Profile'),
               onTap: () {
                 if (_isVendor) {
-                  Navigator.pushNamed(context, '/vendor_profile');
+                  _navigateTo('/vendor_profile');
                 } else {
-                  Navigator.pushNamed(context, '/user_profile');
+                  _navigateTo('/user_profile');
                 }
               },
             ),
             if (!_isVendor)
               ListTile(
-                leading: const Icon(Icons.shopping_cart),
+                leading: const Icon(Icons.shopping_cart, color: Colors.teal),
                 title: const Text('My Cart'),
-                onTap: () => Navigator.pushNamed(context, '/cart'),
+                onTap: () => _navigateTo('/cart'),
               ),
             if (_isVendor)
               ListTile(
-                leading: const Icon(Icons.store),
+                leading: const Icon(Icons.store, color: Colors.teal),
                 title: const Text('Vendor Management'),
-                onTap: () => Navigator.pushNamed(context, '/vendor_management'),
+                onTap: () => _navigateTo('/vendor_management'),
               ),
             ListTile(
-              leading: const Icon(Icons.exit_to_app),
+              leading: const Icon(Icons.exit_to_app, color: Colors.teal),
               title: const Text('Log Out'),
               onTap: () async {
                 await _auth.signOut();
-                Navigator.pushNamed(context, '/');
+                _navigateTo('/');
               },
             ),
           ] else ...[
             ListTile(
-              leading: const Icon(Icons.person),
+              leading: const Icon(Icons.person, color: Colors.teal),
               title: const Text('Log In'),
-              onTap: () => Navigator.pushNamed(context, '/login'),
+              onTap: () => _navigateTo('/login'),
             ),
           ],
         ],
