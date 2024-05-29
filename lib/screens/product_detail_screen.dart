@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -40,33 +39,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _addComment(String productId, String comment, User user) async {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  DocumentReference productRef = _firestore.collection('products').doc(productId);
-  CollectionReference commentsRef = productRef.collection('comments');
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    DocumentReference productRef = _firestore.collection('products').doc(productId);
+    CollectionReference commentsRef = productRef.collection('comments');
 
-  await commentsRef.add({
-    'userId': user.uid,
-    'username': user.displayName ?? 'Anonymous',
-    'comment': comment,
-    'timestamp': FieldValue.serverTimestamp(),
-  });
-
-  // Get the vendor's FCM token
-  DocumentSnapshot vendorSnapshot = await _firestore.collection('vendor_tokens').doc(productId).get();
-  if (vendorSnapshot.exists) {
-    String vendorToken = vendorSnapshot['token'];
-
-    // Send a notification to the vendor
-    await FirebaseMessaging.instance.sendMessage(
-      to: vendorToken,
-      data: {
-        'title': 'New Comment',
-        'body': 'A new comment has been added to your product',
-      },
-    );
+    await commentsRef.add({
+      'userId': user.uid,
+      'username': user.displayName ?? 'Anonymous',
+      'comment': comment,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
   }
-}
-
 
   Future<void> _addToCart(String productId, User user) async {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;

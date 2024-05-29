@@ -21,8 +21,8 @@
   },
   "functions": [
     {
-      "source": "functions",
-      "codebase": "default",
+      "source": "notifs",
+      "codebase": "notifs",
       "ignore": [
         "node_modules",
         ".git",

@@ -16,7 +16,8 @@ import 'screens/vendor_management_screen.dart';
 import 'screens/cart_screen.dart';
 
 // Initialize FlutterLocalNotificationsPlugin
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -41,16 +42,28 @@ void main() async {
     sound: true,
   );
 
-  // Initialize local notifications
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true, // Required to display a heads up notification
+    badge: true,
+    sound: true,
+  );
 
-  const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+  // Initialize local notifications
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings();
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
   // Handle foreground messages
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('Received a message in the foreground: ${message.notification?.title}');
+    print(
+        'Received a message in the foreground: ${message.notification?.title}');
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
@@ -66,6 +79,7 @@ void main() async {
             'your_channel_name',
             channelDescription: 'your_channel_description',
             icon: '@mipmap/ic_launcher',
+            importance: Importance.max
           ),
         ),
       );
@@ -131,7 +145,8 @@ Future<void> saveTokenToDatabase(String token) async {
   final User? user = FirebaseAuth.instance.currentUser;
 
   if (user != null) {
-    DocumentReference tokenRef = _firestore.collection('vendor_tokens').doc(user.uid);
+    DocumentReference tokenRef =
+        _firestore.collection('vendor_tokens').doc(user.uid);
     await tokenRef.set({
       'token': token,
       'timestamp': FieldValue.serverTimestamp(),

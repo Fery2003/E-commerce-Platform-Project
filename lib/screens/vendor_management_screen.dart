@@ -44,12 +44,12 @@ class _VendorManagementScreenState extends State<VendorManagementScreen> {
 
   void addProduct(String imageUrl) async {
     String productName = _productNameController.text.trim();
-    String productPrice = _productPriceController.text.trim();
+    double productPrice = double.tryParse(_productPriceController.text.trim()) ?? 0.0;
     String productDescription = _productDescriptionController.text.trim();
     User? user = _auth.currentUser;
 
     if (productName.isNotEmpty &&
-        productPrice.isNotEmpty &&
+        productPrice != 0.0 &&
         productDescription.isNotEmpty &&
         imageUrl.isNotEmpty &&
         _selectedCategory != null &&
