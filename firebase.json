@@ -1,1 +1,38 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"e-commerce-platform-d83c8","appId":"1:425501147614:android:b2a1d103c78f67feb21d4f","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"e-commerce-platform-d83c8","configurations":{"android":"1:425501147614:android:b2a1d103c78f67feb21d4f","ios":"1:425501147614:ios:d732604437ef32c3b21d4f"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "e-commerce-platform-d83c8",
+          "appId": "1:425501147614:android:b2a1d103c78f67feb21d4f",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "e-commerce-platform-d83c8",
+          "configurations": {
+            "android": "1:425501147614:android:b2a1d103c78f67feb21d4f",
+            "ios": "1:425501147614:ios:d732604437ef32c3b21d4f"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

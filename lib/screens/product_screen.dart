@@ -187,7 +187,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   sliver: SliverGrid(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 2 / 3,
+                      childAspectRatio: 2 / 3.5,
                       mainAxisSpacing: 16.0,
                       crossAxisSpacing: 16.0,
                     ),
@@ -199,70 +199,121 @@ class _ProductScreenState extends State<ProductScreen> {
                           productDoc.id,
                         );
                         var averageRating = product.averageRating;
-                        return Card(
-                          elevation: 10.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ProductDetailScreen(product: product),
+                        var hasDiscount = product.discount > 0;
+                        var discountedPrice = product.price * (1 - product.discount / 100);
+                        return Stack(
+                          children: [
+                            Card(
+                              elevation: 10.0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProductDetailScreen(product: product),
+                                    ),
+                                  );
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12.0)),
+                                      child: product.imageUrl.isNotEmpty
+                                          ? Image.network(
+                                              product.imageUrl,
+                                              height: 150,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Container(
+                                              height: 150,
+                                              color: Colors.grey[300],
+                                              child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                                            ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            product.name,
+                                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          if (hasDiscount) ...[
+                                            Text(
+                                              'Price: \$${product.price.toStringAsFixed(2)}',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey,
+                                                decoration: TextDecoration.lineThrough,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Discounted: \$${discountedPrice.toStringAsFixed(2)}',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ] else ...[
+                                            Text(
+                                              'Price: \$${product.price.toStringAsFixed(2)}',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 4),
+                                          RatingBarIndicator(
+                                            rating: averageRating,
+                                            itemBuilder: (context, index) => const Icon(
+                                              Icons.star,
+                                              color: Colors.amber,
+                                            ),
+                                            itemCount: 5,
+                                            itemSize: 20.0,
+                                            direction: Axis.horizontal,
+                                          ),
+                                          Text(
+                                            '${averageRating.toStringAsFixed(1)} (${product.ratings.length} rating${product.ratings.length == 1 ? '' : 's'})',
+                                            style: const TextStyle(fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12.0)),
-                                  child: product.imageUrl.isNotEmpty
-                                      ? Image.network(
-                                          product.imageUrl,
-                                          height: 150,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Container(
-                                          height: 150,
-                                          color: Colors.grey[300],
-                                          child: const Icon(Icons.image, size: 50, color: Colors.grey),
-                                        ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        product.name,
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text('Price: \$${product.price}'),
-                                      const SizedBox(height: 4),
-                                      RatingBarIndicator(
-                                        rating: averageRating,
-                                        itemBuilder: (context, index) => const Icon(
-                                          Icons.star,
-                                          color: Colors.amber,
-                                        ),
-                                        itemCount: 5,
-                                        itemSize: 20.0,
-                                        direction: Axis.horizontal,
-                                      ),
-                                      Text(
-                                        '${averageRating.toStringAsFixed(1)} (${product.ratings.length} rating${product.ratings.length == 1 ? '' : 's'})',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ],
+                              ),
+                            ),
+                            if (hasDiscount)
+                              Positioned(
+                                top: 8,
+                                left: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: const Text(
+                                    'Discount',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                          ],
                         );
                       },
                       childCount: filteredProducts.length,

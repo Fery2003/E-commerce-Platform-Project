@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,17 +40,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _addComment(String productId, String comment, User user) async {
-    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-    DocumentReference productRef = _firestore.collection('products').doc(productId);
-    CollectionReference commentsRef = productRef.collection('comments');
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  DocumentReference productRef = _firestore.collection('products').doc(productId);
+  CollectionReference commentsRef = productRef.collection('comments');
 
-    await commentsRef.add({
-      'userId': user.uid,
-      'username': user.displayName ?? 'Anonymous',
-      'comment': comment,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+  await commentsRef.add({
+    'userId': user.uid,
+    'username': user.displayName ?? 'Anonymous',
+    'comment': comment,
+    'timestamp': FieldValue.serverTimestamp(),
+  });
+
+  // Get the vendor's FCM token
+  DocumentSnapshot vendorSnapshot = await _firestore.collection('vendor_tokens').doc(productId).get();
+  if (vendorSnapshot.exists) {
+    String vendorToken = vendorSnapshot['token'];
+
+    // Send a notification to the vendor
+    await FirebaseMessaging.instance.sendMessage(
+      to: vendorToken,
+      data: {
+        'title': 'New Comment',
+        'body': 'A new comment has been added to your product',
+      },
+    );
   }
+}
+
 
   Future<void> _addToCart(String productId, User user) async {
     final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -82,6 +99,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final User? user = FirebaseAuth.instance.currentUser;
     var averageRating = widget.product.averageRating;
 
+    double discountedPrice = widget.product.price - (widget.product.price * widget.product.discount / 100);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.product.name),
@@ -94,11 +113,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             children: [
               widget.product.imageUrl.isNotEmpty
                   ? Image.network(
-                widget.product.imageUrl,
-                fit: BoxFit.cover,
-                height: 250,
-                width: double.infinity,
-              )
+                      widget.product.imageUrl,
+                      fit: BoxFit.cover,
+                      height: 250,
+                      width: double.infinity,
+                    )
                   : const Icon(Icons.image, size: 250),
               const SizedBox(height: 16),
               Row(
@@ -125,8 +144,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 8),
               Text(
                 'Price: \$${widget.product.price}',
-                style: const TextStyle(fontSize: 20),
+                style: TextStyle(
+                  fontSize: 20,
+                  decoration: widget.product.discount > 0 ? TextDecoration.lineThrough : TextDecoration.none,
+                ),
               ),
+              if (widget.product.discount > 0) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Discounted Price: \$${discountedPrice.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 20, color: Colors.red),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: const Text(
+                    'Discount',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               const Text(
                 'Description',
@@ -201,7 +242,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (_commentController.text.isNotEmpty) {
-                      _addComment(widget.product.id, _commentController.text, user!);
+                      _addComment(widget.product.id, _commentController.text, user);
                       _commentController.clear();
                     }
                   },

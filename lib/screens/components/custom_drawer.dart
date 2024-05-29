@@ -36,6 +36,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   void _navigateTo(String routeName) {
     Navigator.pop(context); // Close the drawer
+    if (ModalRoute.of(context)!.settings.name == routeName) return;
     Navigator.pushReplacementNamed(context, routeName);
   }
 

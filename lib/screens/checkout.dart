@@ -21,6 +21,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _paypalEmailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  @override
+  void dispose() {
+    _cardNumberController.dispose();
+    _expiryDateController.dispose();
+    _cvvController.dispose();
+    _paypalEmailController.dispose();
+    super.dispose();
+  }
+
   void _completeCheckout() async {
     print('Complete checkout button pressed');
 
@@ -32,7 +41,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('You need to be logged in to complete the checkout.')),
+        const SnackBar(content: Text('You need to be logged in to complete the checkout.')),
       );
       return;
     }
@@ -41,14 +50,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     // Create order data
     final orderData = {
       'email': user.email,
-      'items': widget.cartItems.map((item) {
-        var productData = item.data() as Map<String, dynamic>;
+      'items': await Future.wait(widget.cartItems.map((item) async {
+        var productSnapshot = await FirebaseFirestore.instance.collection('products').doc(item['productId']).get();
+        var productData = productSnapshot.data() as Map<String, dynamic>;
+
+        double price = productData['price'] ?? 0.0;
+        if (productData.containsKey('discount')) {
+          price = price - (price * (productData['discount'] / 100));
+        }
+
         return {
           'name': productData['name'] ?? 'Unknown',
-          'price': productData['price'] ?? 0.0,
+          'price': price,
           'quantity': item['quantity'] ?? 0,
         };
-      }).toList(),
+      }).toList()),
       'total': _calculateTotal(),
       'paymentMethod': _selectedPaymentMethod,
       'createdAt': Timestamp.now(),
@@ -85,15 +101,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 10),
               Text('Payment Method: $_selectedPaymentMethod'),
               const SizedBox(height: 10),
-              ...widget.cartItems.map((item) {
-                var productData = item.data() as Map<String, dynamic>;
-                var name = productData['name'] ?? 'Unknown';
-                var price = productData['price'] ?? 0.0;
-                var quantity = item['quantity'] ?? 0;
-                return Text('$name - \$${price.toStringAsFixed(2)} x $quantity');
-              }).toList(),
+                ...(orderData['items'] as List<dynamic>).map((item) {
+                return Text('${item['name']} - \$${item['price'].toStringAsFixed(2)} x ${item['quantity']}');
+              }),
               const SizedBox(height: 10),
-              Text('Total: \$${_calculateTotal().toStringAsFixed(2)}'),
+              Text('Total: \$${(orderData['total'] as double?)?.toStringAsFixed(2)}'),
             ],
           ),
         ),
@@ -114,7 +126,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     double total = 0.0;
     for (var item in widget.cartItems) {
       var productData = item.data() as Map<String, dynamic>;
-      var price = productData['price'] ?? 0.0;
+      double price = productData['price'] ?? 0.0;
+      if (productData.containsKey('discount')) {
+        price = price - (price * (productData['discount'] / 100));
+      }
       var quantity = item['quantity'] ?? 0;
       total += price * quantity;
     }
@@ -274,7 +289,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   child: const Text(
                     'Complete Checkout',
-                    style: TextStyle(fontSize: 18), // Increase the font size
+                    style: TextStyle(fontSize: 18, color: Colors.white), // Increase the font size
                   ),
                 ),
               ),

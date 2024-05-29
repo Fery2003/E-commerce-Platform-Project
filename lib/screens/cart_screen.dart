@@ -2,21 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'checkout.dart'; // Import the new CheckoutScreen
+import '../models/cart_model.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
-  Future<void> _updateQuantity(String userId, String productId, int quantity) async {
+  Future<void> _updateQuantity(String userId, CartModel cartItem, int quantity) async {
     final DocumentReference cartItemRef = FirebaseFirestore.instance
         .collection('carts')
         .doc(userId)
         .collection('items')
-        .doc(productId);
+        .doc(cartItem.productId);
 
-    if (quantity > 0) {
-      await cartItemRef.update({'quantity': quantity});
+    final DocumentSnapshot cartItemSnapshot = await cartItemRef.get();
+
+    if (cartItemSnapshot.exists) {
+      if (quantity > 0) {
+        cartItem.changeQuantity(quantity);
+        await cartItemRef.update(cartItem.toMap());
+      } else {
+        await cartItemRef.delete();
+      }
     } else {
-      await cartItemRef.delete();
+      throw FirebaseException(
+        plugin: 'cloud_firestore',
+        message: 'Document not found',
+        code: 'not-found',
+      );
     }
   }
 
@@ -27,7 +39,17 @@ class CartScreen extends StatelessWidget {
         .collection('items')
         .doc(productId);
 
-    await cartItemRef.delete();
+    final DocumentSnapshot cartItemSnapshot = await cartItemRef.get();
+
+    if (cartItemSnapshot.exists) {
+      await cartItemRef.delete();
+    } else {
+      throw FirebaseException(
+        plugin: 'cloud_firestore',
+        message: 'Document not found',
+        code: 'not-found',
+      );
+    }
   }
 
   void _checkout(BuildContext context, List<QueryDocumentSnapshot> cartItems) {
@@ -86,104 +108,164 @@ class CartScreen extends StatelessWidget {
             return const Center(child: Text('Your cart is empty.'));
           }
 
-          return Column(
-            children: [
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0), // Add padding to raise the button
-                  child: ListView.builder(
-                    itemCount: cartItems.length,
-                    itemBuilder: (context, index) {
-                      var cartItem = cartItems[index];
-                      var productId = cartItem['productId'];
-                      var quantity = cartItem['quantity'];
+          return FutureBuilder<List<CartModel>>(
+            future: Future.wait(cartItems.map((doc) async {
+              var cartItem = CartModel.fromMap(doc.data() as Map<String, dynamic>);
+              var productSnapshot = await FirebaseFirestore.instance
+                  .collection('products')
+                  .doc(cartItem.productId)
+                  .get();
+              if (productSnapshot.exists) {
+                double productPrice = productSnapshot['price'];
+                double discount = productSnapshot['discount']?.toDouble() ?? 0.0;
+                double discountedPrice = productPrice - (productPrice * discount / 100);
+                cartItem.unitPrice = discountedPrice;
+                cartItem.changeQuantity(cartItem.quantity);
+              }
+              return cartItem;
+            }).toList()),
+            builder: (context, AsyncSnapshot<List<CartModel>> cartModelSnapshot) {
+              if (!cartModelSnapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                      return Dismissible(
-                        key: Key(productId),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (direction) {
-                          _removeItem(user.uid, productId);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Item removed from cart')),
+              var cartModels = cartModelSnapshot.data!;
+              double totalPrice = cartModels.fold(0.0, (sum, item) => sum + item.totalPrice);
+
+              return Column(
+                children: [
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20.0), // Add padding to raise the button
+                      child: ListView.builder(
+                        itemCount: cartModels.length,
+                        itemBuilder: (context, index) {
+                          var cartItem = cartModels[index];
+
+                          return Dismissible(
+                            key: Key(cartItem.productId),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (direction) {
+                              _removeItem(user.uid, cartItem.productId).catchError((error) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Failed to remove item from cart.')),
+                                );
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Item removed from cart')),
+                              );
+                            },
+                            background: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: const Icon(Icons.delete, color: Colors.white),
+                            ),
+                            child: FutureBuilder<DocumentSnapshot>(
+                              future: FirebaseFirestore.instance
+                                  .collection('products')
+                                  .doc(cartItem.productId)
+                                  .get(),
+                              builder: (context, productSnapshot) {
+                                if (productSnapshot.connectionState == ConnectionState.waiting) {
+                                  return const ListTile(
+                                    title: Text('Loading...'),
+                                  );
+                                }
+                                if (!productSnapshot.hasData || !productSnapshot.data!.exists) {
+                                  return const ListTile(
+                                    title: Text('Product not found'),
+                                  );
+                                }
+
+                                var product = productSnapshot.data!;
+                                double productPrice = product['price'];
+                                double discount = product['discount']?.toDouble() ?? 0.0;
+                                double discountedPrice = productPrice - (productPrice * discount / 100);
+
+                                return ListTile(
+                                  leading: product['imageUrl'].isNotEmpty
+                                      ? Image.network(
+                                          product['imageUrl'],
+                                          width: 50,
+                                          height: 50,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : const Icon(Icons.image, size: 50),
+                                  title: Text(product['name']),
+                                  subtitle: Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.remove),
+                                        onPressed: () {
+                                          if (cartItem.quantity > 1) {
+                                            _updateQuantity(user.uid, cartItem, cartItem.quantity - 1).catchError((error) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Failed to update quantity.')),
+                                              );
+                                            });
+                                          } else {
+                                            _removeItem(user.uid, cartItem.productId).catchError((error) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Failed to remove item from cart.')),
+                                              );
+                                            });
+                                          }
+                                        },
+                                      ),
+                                      Text('Quantity: ${cartItem.quantity}'),
+                                      IconButton(
+                                        icon: const Icon(Icons.add),
+                                        onPressed: () {
+                                          _updateQuantity(user.uid, cartItem, cartItem.quantity + 1).catchError((error) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Failed to update quantity.')),
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: Text('\$${cartItem.totalPrice.toStringAsFixed(2)}'),
+                                );
+                              },
+                            ),
                           );
                         },
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        child: FutureBuilder<DocumentSnapshot>(
-                          future: FirebaseFirestore.instance
-                              .collection('products')
-                              .doc(productId)
-                              .get(),
-                          builder: (context, productSnapshot) {
-                            if (!productSnapshot.hasData) {
-                              return const ListTile(
-                                title: Text('Loading...'),
-                              );
-                            }
-
-                            var product = productSnapshot.data!;
-                            return ListTile(
-                              leading: product['imageUrl'].isNotEmpty
-                                  ? Image.network(
-                                product['imageUrl'],
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                              )
-                                  : const Icon(Icons.image, size: 50),
-                              title: Text(product['name']),
-                              subtitle: Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.remove),
-                                    onPressed: () {
-                                      if (quantity > 1) {
-                                        _updateQuantity(user.uid, productId, quantity - 1);
-                                      } else {
-                                        _removeItem(user.uid, productId);
-                                      }
-                                    },
-                                  ),
-                                  Text('Quantity: $quantity'),
-                                  IconButton(
-                                    icon: const Icon(Icons.add),
-                                    onPressed: () {
-                                      _updateQuantity(user.uid, productId, quantity + 1);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              trailing: Text('\$${product['price']}'),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _checkout(context, cartItems),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal, // Set the button color to teal
-                      padding: const EdgeInsets.symmetric(vertical: 16), // Increase the button height
-                    ),
-                    child: const Text(
-                      'Checkout',
-                      style: TextStyle(fontSize: 18), // Increase the font size
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Total Price: \$${totalPrice.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => _checkout(context, cartItems),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal, // Set the button color to teal
+                            padding: const EdgeInsets.symmetric(vertical: 16), // Increase the button height
+                          ),
+                          child: const Text(
+                            'Checkout',
+                            style: TextStyle(fontSize: 18, color: Colors.white), // Increase the font size
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
